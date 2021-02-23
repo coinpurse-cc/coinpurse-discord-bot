@@ -1,10 +1,6 @@
 {
   "BOT_TOKEN": "",
-  "ETH_ACCT": {
-    "PUBLIC_ADDRESS": "",
-    "PRIVATE_KEY": ""
-  },
-  "GAS_PRICE_GWEI": 1,
+ 
   "TOKEN_ADDRESS":"0x71B821aa52a49F32EEd535fCA6Eb5aa130085978",
   "TOKEN_DECIMALS":8
 }

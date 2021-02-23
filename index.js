@@ -24,17 +24,20 @@ client.on('message', async message   => {
 
       if (inputContent === (`${prefix}wallet`)) {
         await message.channel.send('Ethereum Burner Wallet Commands:'
-        +'\n !wallet new: Generate a new account'
+        +'\n !wallet register 0x....: Register your account by pairing it with a Public Address'
         +'\n !wallet info: Display account information'
         +'\n !wallet destroy: Delete your existing account'
         +'\n !wallet balance: View your balance'
-        +'\n !tip @username #: Send a tip of 0xBTC'
+        +'\n !tip @username #: Send a tip of 0xBTC (this generates a link)'
          )
 
 
       }
 
-      if (inputContent === (`${prefix}wallet new`)) {
+      if (inputContent === (`${prefix}wallet register`)) {
+
+        var args = inputContent.trim().split(' ');
+        var newPublicAddress = args[2]; 
 
 
         //find existing wallet in mongo
@@ -51,17 +54,17 @@ client.on('message', async message   => {
            }else{
 
 
-             var newWalletData = await WalletHelper.generateNewWallet(author_id);
+             var newWalletData = await WalletHelper.registerNewWallet(author_id, newPublicAddress);
+             await message.channel.send('Your wallet has been registered.  Your Public address is '+newWalletData.address+'.');
 
+           //  try{
+         //      await client.users.cache.get(author_id).send('Your wallet has been registered.  Your Public address is '+newWalletData.address+'.')
+              
 
-             try{
-               await client.users.cache.get(author_id).send('A new ETH wallet has been generated.  Your Public address is '+newWalletData.address+'.  The Private key for this account is '+  newWalletData.privateKey );
-               await message.channel.send('A new ETH wallet has been generated.  Your Public address is '+newWalletData.address+'.  The Private key has been DMed to you.');
+          //   }catch(e){
+          //     await message.channel.send('Could not DM you any wallet information! Edit your Privacy settings for this server to allow DMs.');
 
-             }catch(e){
-               await message.channel.send('Could not DM you any wallet information! Edit your Privacy settings for this server to allow DMs.');
-
-             }
+           //  }
            }
 
 
@@ -80,25 +83,17 @@ client.on('message', async message   => {
 
            if(  existingWallet  )
            {
-
-               try{
-                 await client.users.cache.get(author_id).send('Your Public address is '+existingWallet.acct.address+'.  The Private key for this account is '+  existingWallet.acct.privateKey );
-                 await message.channel.send(' Your Public address is '+existingWallet.acct.address+'.  The Private key has been DMed to you.');
-               }catch(e){
-                 await message.channel.send('Could not DM you any wallet information! Edit your Privacy settings for this server to allow DMs.');
-
-               }
-
+            await message.channel.send(' Your Public address is '+existingWallet.acct.address+'.');
+               
 
            }else{
-             await message.channel.send('You do not have a wallet.  Use the command "!wallet new" to generate one.');
+             await message.channel.send('You do not have a paired Public Address.  Use the command "!wallet register 0x..." to pair one.');
 
 
            }
 
 
-        //    message.author.dm_channel.send('A new wallet has been generated.  Your Public address is '+newWalletData.address+'.  The Private key for this account is '+  newWalletData.address );
-
+       
       }
 
 
@@ -107,20 +102,18 @@ client.on('message', async message   => {
           var author_id = message.author.id;
 
            var existingWallet = await WalletHelper.findExistingWalletByUserID(author_id);
-
-
-
+ 
            if(  existingWallet  )
            {
 
             var currentBalanceFormatted = await WalletHelper.getCurrentBalanceByUserID(author_id);
 
 
-             await message.channel.send('Your balance is '+ currentBalanceFormatted +' 0xBTC on the Matic Network within the Tipjar contract (https://tipjar.0xbtc.io).');
+             await message.channel.send('Your balance is '+ currentBalanceFormatted +' 0xBTC on the xDAI Network.  (https://coinpurse.cc).');
 
 
           }else{
-            await message.channel.send('You do not have a wallet.  Use the command "!wallet new" to generate one.');
+             await message.channel.send('You do not have a paired Public Address.  Use the command "!wallet register 0x..." to pair one.');
 
 
           }
@@ -139,28 +132,16 @@ client.on('message', async message   => {
 
          if(  existingWallet  )
          {
-
-             var couldDM = false;
-              try{
-                await client.users.cache.get(author_id).send('The following wallet was just deleted forever: '+existingWallet.acct.address+'.  The Private key for this account was '+  existingWallet.acct.privateKey );
-                await message.channel.send(' Your wallet  '+existingWallet.acct.address+' has been permanently deleted from this bot.  The Private key has been DMed to you for your records.');
-
-                couldDM=true;
-
-              }catch(e){
-                await message.channel.send('Could not DM you any wallet information! Edit your Privacy settings for this server to allow DMs.');
-
-              }
-
-              if(couldDM)
-              {
-                var result = await WalletHelper.deleteWallet(author_id)
-              }
+ 
+            await message.channel.send(' Your address  '+existingWallet.acct.address+' has been unpaired from this bot.'); 
+          
+            var result = await WalletHelper.deleteWallet(author_id)
+        
 
 
          }else{
 
-           await message.channel.send('You do not have a wallet.  Use the command "!wallet new" to generate one.');
+          await message.channel.send('You do not have a paired Public Address.  Use the command "!wallet register 0x..." to pair one.');
 
          }
       }
@@ -182,14 +163,12 @@ client.on('message', async message   => {
     console.log("got tip command ", recipientUsername, amountFormatted )
 
     const recipientUser = message.mentions.users.first();
-
-  //  var recipientID = await client.users.cache.find(u => u.tag === recipientUsername).id
-
+ 
 
     var senderWallet = await WalletHelper.findExistingWalletByUserID(author_id);
     if(!senderWallet)
     {
-      await message.channel.send("Error: You do not have an associated wallet. Use '!wallet new' to create one.");
+      await message.channel.send("Error: You do not have an associated wallet. Use '!wallet pair 0x...' to create one.");
       return;
     }
     var senderAddress = senderWallet.acct.address;
@@ -212,14 +191,23 @@ client.on('message', async message   => {
 
     var recipientAddress = recipientWallet.acct.address;
 
-    var result = await WalletHelper.sendTip(senderAddress, recipientAddress, amountFormatted );
+
+    //Generate a URL here and send it to the user !! 
+
+    // https://coinpurse.cc/#/tip?to=0x111111&amt=11231
+
+    var tippingURL = await WalletHelper.generateTippingURL(senderAddress, recipientAddress, amountFormatted );
+
+    await message.channel.send('Click this link to tip '+ amountFormatted + ' 0xBTC' + ' to ' + recipientUsername +'. ' );
+    await message.channel.send(tippingURL);
+   /* var result = await WalletHelper.sendTip(senderAddress, recipientAddress, amountFormatted );
 
     if(result.success )
     {
       await message.channel.send('A tip of '+ amountFormatted + ' 0xBTC' + ' has been sent to ' + recipientUsername +'. (https://tipjar.0xbtc.io)');
     }else{
       await message.channel.send(result.errormessage);
-    }
+    }*/
 
 
 
