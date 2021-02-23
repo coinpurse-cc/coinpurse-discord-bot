@@ -3,6 +3,7 @@ const config = require("./config.json");
 
 
 const WalletHelper = require('./lib/wallet-helper.js');
+const web3Helper = require("./lib/web3-helper");
 
 
 
@@ -202,11 +203,13 @@ client.on('message', async message   => {
     var recipientAddress = recipientWallet.publicAddress;
 
 
+    let rawAmount = web3Helper.formattedAmountToRaw( amountFormatted, config.TOKEN_DECIMALS  )
+
     //Generate a URL here and send it to the user !! 
 
     // https://coinpurse.cc/#/tip?to=0x111111&amt=11231
 
-    var tippingURL = await WalletHelper.generateTippingURL(senderAddress, recipientAddress, tokenAddress, amountFormatted );
+    var tippingURL = await WalletHelper.generateTippingURL(senderAddress, recipientAddress, tokenAddress, rawAmount );
 
     await message.channel.send('Click this link to tip '+ amountFormatted + ' 0xBTC' + ' to ' + recipientUsername +'. ' );
     await message.channel.send(tippingURL);
