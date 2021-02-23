@@ -34,7 +34,8 @@ client.on('message', async message   => {
 
       }
 
-      if (inputContent === (`${prefix}wallet register`)) {
+      if (inputContent.startsWith(`${prefix}wallet register`)) {
+   //   if (inputContent === (`${prefix}wallet register`)) {
 
         var args = inputContent.trim().split(' ');
         var newPublicAddress = args[2]; 
@@ -48,15 +49,22 @@ client.on('message', async message   => {
 
            if(  existingWallet  )
            {
-             await message.channel.send('You already have an ETH wallet.  Your Public address is '+existingWallet.acct.address+'.  Use the command "!wallet info" for more information.');
+             await message.channel.send('You already have an ETH wallet.  Your Public address is '+existingWallet.publicAddress+'.  Use the command "!wallet info" for more information.');
 
 
            }else{
 
 
              var newWalletData = await WalletHelper.registerNewWallet(author_id, newPublicAddress);
-             await message.channel.send('Your wallet has been registered.  Your Public address is '+newWalletData.address+'.');
 
+             if(newWalletData.success == true){
+              await message.channel.send('Your wallet has been registered.  Your Public address is '+newWalletData.publicAddress+'.');
+
+             }else{
+              await message.channel.send('Something went wrong! '+newPublicAddress+' is not a valid public address.');
+             }
+
+            
            //  try{
          //      await client.users.cache.get(author_id).send('Your wallet has been registered.  Your Public address is '+newWalletData.address+'.')
               
@@ -83,7 +91,7 @@ client.on('message', async message   => {
 
            if(  existingWallet  )
            {
-            await message.channel.send(' Your Public address is '+existingWallet.acct.address+'.');
+            await message.channel.send(' Your Public address is '+existingWallet.publicAddress+'.');
                
 
            }else{
@@ -133,7 +141,7 @@ client.on('message', async message   => {
          if(  existingWallet  )
          {
  
-            await message.channel.send(' Your address  '+existingWallet.acct.address+' has been unpaired from this bot.'); 
+            await message.channel.send(' Your address  '+existingWallet.publicAddress+' has been unpaired from this bot.'); 
           
             var result = await WalletHelper.deleteWallet(author_id)
         
@@ -171,7 +179,7 @@ client.on('message', async message   => {
       await message.channel.send("Error: You do not have an associated wallet. Use '!wallet pair 0x...' to create one.");
       return;
     }
-    var senderAddress = senderWallet.acct.address;
+    var senderAddress = senderWallet.publicAddress;
 
     var currentSenderBalance = await WalletHelper.getCurrentBalanceByUserID(author_id);
     if(parseFloat(currentSenderBalance) < parseFloat(amountFormatted) )
@@ -189,7 +197,7 @@ client.on('message', async message   => {
       return;
     }
 
-    var recipientAddress = recipientWallet.acct.address;
+    var recipientAddress = recipientWallet.publicAddress;
 
 
     //Generate a URL here and send it to the user !! 
