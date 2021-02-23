@@ -165,7 +165,7 @@ client.on('message', async message   => {
     var author_id = message.author.id;
 
 
-    var args = inputContent.trim().split(' ');
+    var args = inputContent.replace(/\s+/g, ' ').trim().split(' ');
     var recipientUsername = args[1];
     var amountFormatted = args[2];
 
