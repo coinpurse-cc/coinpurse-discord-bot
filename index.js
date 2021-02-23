@@ -168,6 +168,8 @@ client.on('message', async message   => {
     var recipientUsername = args[1];
     var amountFormatted = args[2];
 
+    let tokenAddress = config.TOKEN_ADDRESS
+
     console.log("got tip command ", recipientUsername, amountFormatted )
 
     const recipientUser = message.mentions.users.first();
@@ -204,7 +206,7 @@ client.on('message', async message   => {
 
     // https://coinpurse.cc/#/tip?to=0x111111&amt=11231
 
-    var tippingURL = await WalletHelper.generateTippingURL(senderAddress, recipientAddress, amountFormatted );
+    var tippingURL = await WalletHelper.generateTippingURL(senderAddress, recipientAddress, tokenAddress, amountFormatted );
 
     await message.channel.send('Click this link to tip '+ amountFormatted + ' 0xBTC' + ' to ' + recipientUsername +'. ' );
     await message.channel.send(tippingURL);
