@@ -179,7 +179,7 @@ client.on('message', async message   => {
     var senderWallet = await WalletHelper.findExistingWalletByUserID(author_id);
     if(!senderWallet)
     {
-      await message.channel.send("Error: You do not have an associated wallet. Use '!wallet pair 0x...' to create one.");
+      await message.channel.send("Error: You do not have an associated wallet. Use '!wallet register 0x...' to pair one.");
       return;
     }
     var senderAddress = senderWallet.publicAddress;
@@ -196,7 +196,7 @@ client.on('message', async message   => {
 
     if(!recipientWallet)
     {
-      await message.channel.send("Error: The recipient "+recipientUser.username+" does not have an associated wallet. Use '!wallet new' to create one.");
+      await message.channel.send("Error: The recipient "+recipientUser.username+" does not have an associated wallet. Use '!wallet register 0x...' to create one.");
       return;
     }
 
