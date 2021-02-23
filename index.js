@@ -23,7 +23,7 @@ client.on('message', async message   => {
   if (inputContent.startsWith(`${prefix}wallet`)) {
 
       if (inputContent === (`${prefix}wallet`)) {
-        await message.channel.send('Ethereum Burner Wallet Commands:'
+        await message.channel.send('Coinpurse.cc Bot Commands:'
         +'\n !wallet register 0x....: Register your account by pairing it with a Public Address'
         +'\n !wallet info: Display account information'
         +'\n !wallet destroy: Delete your existing account'
